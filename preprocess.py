@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import StratifiedKFold, train_test_split
+from sklearn.decomposition import PCA
 
 def load_x_y(filepath:str):
     '''
@@ -47,11 +48,37 @@ def normalize(X:np.array):
 
     return X_norm
 
-batch_dir = r"C:\Users\jackw\Documents\MAAE4904\Project\cifar-10-python\cifar-10-batches-py"
-train_batch_path = os.path.join(batch_dir,'data_batch_1')
-test_batch_path = os.path.join(batch_dir,'test_batch')
-label_names_batch_path = os.path.join(batch_dir,'batches.meta')
+def rgb_to_grayscale(X:np.ndarray):
+    '''
+    Convert a colour image to grayscale using NTSC formula: 0.299 ∙ Red + 0.587 ∙ Green + 0.114 ∙ Blue.
+    '''
+    X_grayscale = np.zeros(32*32)
 
-X_train, y_train = load_x_y(train_batch_path)
-X_test, y_test = load_x_y(test_batch_path)
-labels = load_labels(label_names_batch_path)
+    for j in range(0,32*32,32):
+        for i in range(32):
+            r = X[i+j]            # Store the red channel value
+            g = X[i+j+1023]       # Store the green channel value
+            b = X[i+j+1023*2]     # Store the blue channel value
+            gray = 0.299*r + 0.587*g + 0.114*b
+            X_grayscale[i+j] = gray
+
+    return X_grayscale
+
+def get_PCA(X_train:np.ndarray,n_components:int,pca_dir:str):
+    '''
+    Fits principal-component analysis algorithm to the training features X_train and keeps n_components principal-components.
+    '''
+    pca_n = PCA(n_components=n_components)
+    pca_n.fit(X_train)
+    with open(os.path.join(pca_dir,f'pca_{n_components}.pkl'), "wb") as f:
+            pickle.dump(pca_n, f, protocol=5)
+
+    return pca_n
+
+def apply_PCA(pca_n:PCA,X:np.ndarray):
+    '''
+    Applies principal-component analysis to the features X and keeps n principal-components.
+    '''
+    X_transformed = pca_n.transform(X)
+
+    return X_transformed
