@@ -6,7 +6,7 @@ import numpy as np
 from pandas import DataFrame, read_csv
 
 from preprocess import load_x_y, load_labels, normalize, get_PCA, apply_PCA
-from modelname_clf import ModelNameCLF
+from modelname_clf import ModelNameCLF, EnsembleModelNameCLF
 from evaluate import get_metrics
 
 project_dir = r"C:\Users\jackw\Documents\MAAE4904\Project" # Create folder for datasets, model files, results
@@ -45,16 +45,16 @@ labels = load_labels(label_names_batch_path)
 X_train_norm = normalize(X_train)
 X_test_norm = normalize(X_test)
 pca_dir = os.path.join(project_dir,'PCA')
-pca = get_PCA(X_train=X_train_norm,n_components=768,pca_dir=pca_dir) # 80% of pixels
+pca = get_PCA(X_train=X_train_norm,n_components=2304,pca_dir=pca_dir) # 75% of pixels
 X_train_norm_transformed = apply_PCA(pca_n=pca,X=X_train_norm)
 X_test_norm_transformed = apply_PCA(pca_n=pca,X=X_test_norm)
 
 # Create and train models
-model_name = "SVM_CLF_PCA_768"
+model_name = "Bagging_10_KNN_CLF_PCA_2304_unoptimized"
 model_dir = os.path.join(project_dir,model_name)
-svm_clf = ModelNameCLF((X_train_norm,y_train),model_dir,model_name)
-svm_clf.fit()
+clf = EnsembleModelNameCLF(10,(X_train_norm_transformed,y_train),model_dir,model_name)
+clf.fit()
 
 # Generate predictions and evaluate model
-y_test_pred = svm_clf.predict(X_test)
+y_test_pred = clf.predict(X_test_norm_transformed)
 get_metrics(y_true=y_test,y_pred=y_test_pred,labels=labels,train=False,model_dir=model_dir)
