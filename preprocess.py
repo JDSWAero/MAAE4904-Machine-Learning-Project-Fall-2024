@@ -48,21 +48,32 @@ def normalize(X:np.array):
 
     return X_norm
 
-def rgb_to_grayscale(X:np.ndarray):
+def rgb_to_grayscale(X_i:np.ndarray):
     '''
     Convert a colour image to grayscale using NTSC formula: 0.299 ∙ Red + 0.587 ∙ Green + 0.114 ∙ Blue.
     '''
-    X_grayscale = np.zeros(32*32)
+    X_i_grayscale = np.zeros(32*32)
 
     for j in range(0,32*32,32):
         for i in range(32):
-            r = X[i+j]            # Store the red channel value
-            g = X[i+j+1023]       # Store the green channel value
-            b = X[i+j+1023*2]     # Store the blue channel value
+            r = X_i[i+j]            # Store the red channel value
+            g = X_i[i+j+1023]       # Store the green channel value
+            b = X_i[i+j+1023*2]     # Store the blue channel value
             gray = 0.299*r + 0.587*g + 0.114*b
-            X_grayscale[i+j] = gray
+            X_i_grayscale[i+j] = gray
 
-    return X_grayscale
+    return X_i_grayscale
+
+def convert_dataset_to_grayscale(X:np.ndarray):
+    '''
+    Convert a dataset X of coloured images to grayscale in a loop using rgb_to_grayscale.
+    '''
+    X_converted = np.zeros((X.shape[0],32*32))
+    for i in range(X.shape[0]):
+        X_i_grayscale = rgb_to_grayscale(X[i])
+        X_converted[i] = X_i_grayscale
+    
+    return X_converted
 
 def get_PCA(X_train:np.ndarray,n_components:int,pca_dir:str):
     '''

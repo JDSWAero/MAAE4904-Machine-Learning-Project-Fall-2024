@@ -1,23 +1,23 @@
 '''
-This is a template file for creating new machine learning models. Create and rename a copy of this file based on the
-model you are training.
+K-Nearest Neighbors Image Classifier
+
+Jack Wooldridge, 101181465
 '''
 
 import os
 import numpy as np
 from pickle import dump
-import json
 
 from sklearn.neighbors import KNeighborsClassifier # Change import to model you are focusing on
 from sklearn.experimental import enable_halving_search_cv
 from sklearn.model_selection import HalvingGridSearchCV # Exhaustive grid search takes a long time, this takes the best candidates at each iteration improving speed
 from sklearn.ensemble import BaggingClassifier
 
-class ModelNameCLF: # Change to name of model as needed e.g. SupportVectorMachineCLF
+class KNNCLF: # Change to name of model as needed e.g. SupportVectorMachineCLF
     '''
     ModelName Classifier for Images
     '''
-    def __init__(self,train_dataset:tuple,model_dir:str,model_name:str='ModelNameCLF'):
+    def __init__(self,train_dataset:tuple,model_dir:str,model_name:str='KNNCLF'):
         '''
         Create instance of classifier, instance variables for training and testing features and labels,
         instance variable for path to folder that will store model files, predictions, and evaluation metrics
@@ -26,10 +26,9 @@ class ModelNameCLF: # Change to name of model as needed e.g. SupportVectorMachin
         train_dataset is a tuple expected in the format of (X_train, y_train)
         '''
         self.X_train, self.y_train = train_dataset
-        self.model_path = os.path.join(model_dir,f'{model_name}.pkl')
-        self.model_hyperparameters_path = os.path.join(model_dir,f'{model_name}_hyperparameters.json')
-        self.base_model = KNeighborsClassifier(n_neighbors=25,leaf_size=50) # Read training progress from command line
-
+        self.model_filepath = os.path.join(model_dir,f'{model_name}.pkl')
+        self.base_model = KNeighborsClassifier(n_neighbors=25,leaf_size=50)
+        
     def get_grid_search(self):
         '''
         Get exhaustive grid search cross validation object using parameter grid to find optimal hyperparameters.
@@ -52,19 +51,14 @@ class ModelNameCLF: # Change to name of model as needed e.g. SupportVectorMachin
             self.get_grid_search()
             self.grid_search.fit(self.X_train,self.y_train)
             self.model = self.grid_search.best_estimator_
-            self.hyperparameters = self.grid_search.best_params_
-            with open(os.path.join(self.model_path), "wb") as f:
+            self.best_parameters = self.grid_search.best_params_
+            with open(os.path.join(self.model_filepath), "wb") as f:
                 dump(self.model, f, protocol=5)
-            with open(os.path.join(self.model_hyperparameters_path), "wb") as f:
-                dump(self.hyperparameters, f)
         else:
             self.model = self.base_model
             self.model.fit(self.X_train,self.y_train)
-            self.hyperparameters = self.model.get_params()
-            with open(os.path.join(self.model_path), "wb") as f:
+            with open(os.path.join(self.model_filepath), "wb") as f:
                 dump(self.model, f, protocol=5)
-            with open(os.path.join(self.model_hyperparameters_path), "wb") as f:
-                dump(self.hyperparameters, f)
     
     def predict(self,X:np.array):
         '''
@@ -74,8 +68,8 @@ class ModelNameCLF: # Change to name of model as needed e.g. SupportVectorMachin
         
         return y_pred
 
-class EnsembleModelNameCLF:
-    def __init__(self,n_estimators:int,train_dataset:tuple,model_dir:str,model_name:str='EnsembleModelNameCLF'):
+class EnsembleKNNCLF:
+    def __init__(self,n_estimators:int,train_dataset:tuple,model_dir:str,model_name:str='EnsembleKNNCLF'):
         '''
         Create instance of classifier, instance variables for training and testing features and labels,
         instance variable for path to folder that will store model files, predictions, and evaluation metrics
