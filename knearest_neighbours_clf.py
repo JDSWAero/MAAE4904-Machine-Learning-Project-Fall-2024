@@ -6,7 +6,8 @@ Jack Wooldridge, 101181465
 
 import os
 import numpy as np
-from pickle import dump
+import pickle
+import json
 
 from sklearn.neighbors import KNeighborsClassifier # Change import to model you are focusing on
 from sklearn.experimental import enable_halving_search_cv
@@ -27,7 +28,7 @@ class KNNCLF: # Change to name of model as needed e.g. SupportVectorMachineCLF
         '''
         self.X_train, self.y_train = train_dataset
         self.model_path = os.path.join(model_dir,f'{model_name}.pkl')
-        self.model_hyperparameters_path = os.path.join(model_dir,f'{model_name}_hyperparameters.json')
+        self.hyperparameters_path = os.path.join(model_dir,f'{model_name}_hyperparameters.json')
         self.base_model = KNeighborsClassifier(n_neighbors=25,leaf_size=50)
         
     def get_grid_search(self):
@@ -54,17 +55,17 @@ class KNNCLF: # Change to name of model as needed e.g. SupportVectorMachineCLF
             self.model = self.grid_search.best_estimator_
             self.hyperparameters = self.grid_search.best_params_
             with open(os.path.join(self.model_path), "wb") as f:
-                dump(self.model, f, protocol=5)
-            with open(os.path.join(self.model_hyperparameters_path), "w") as f:
-                dump(self.hyperparameters, f)
+                pickle.dump(self.model, f, protocol=5)
+            with open(os.path.join(self.hyperparameters_path), "w", encoding='utf-8') as f:
+                json.dump(self.hyperparameters, f)
         else:
             self.model = self.base_model
             self.model.fit(self.X_train,self.y_train)
             self.hyperparameters = self.model.get_params()
             with open(os.path.join(self.model_path), "wb") as f:
-                dump(self.model, f, protocol=5)
-            with open(os.path.join(self.model_hyperparameters_path), "w") as f:
-                dump(self.hyperparameters, f)
+                pickle.dump(self.model, f, protocol=5)
+            with open(os.path.join(self.hyperparameters_path), "w", encoding='utf-8') as f:
+                json.dump(self.hyperparameters, f)
     
     def predict(self,X:np.array):
         '''

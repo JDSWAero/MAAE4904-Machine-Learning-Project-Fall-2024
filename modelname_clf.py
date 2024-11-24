@@ -5,7 +5,7 @@ model you are training.
 
 import os
 import numpy as np
-from pickle import dump
+import pickle
 import json
 
 from sklearn.neighbors import KNeighborsClassifier # Change import to model you are focusing on
@@ -54,17 +54,17 @@ class ModelNameCLF: # Change to name of model as needed e.g. SupportVectorMachin
             self.model = self.grid_search.best_estimator_
             self.hyperparameters = self.grid_search.best_params_
             with open(os.path.join(self.model_path), "wb") as f:
-                dump(self.model, f, protocol=5)
-            with open(os.path.join(self.model_hyperparameters_path), "wb") as f:
-                dump(self.hyperparameters, f)
+                pickle.dump(self.model, f, protocol=5)
+            with open(os.path.join(self.model_hyperparameters_path), "wb", encoding='utf-8') as f:
+                json.dump(self.hyperparameters, f)
         else:
             self.model = self.base_model
             self.model.fit(self.X_train,self.y_train)
             self.hyperparameters = self.model.get_params()
             with open(os.path.join(self.model_path), "wb") as f:
-                dump(self.model, f, protocol=5)
-            with open(os.path.join(self.model_hyperparameters_path), "wb") as f:
-                dump(self.hyperparameters, f)
+                pickle.dump(self.model, f, protocol=5)
+            with open(os.path.join(self.model_hyperparameters_path), "wb", encoding='utf-8') as f:
+                json.dump(self.hyperparameters, f)
     
     def predict(self,X:np.array):
         '''
