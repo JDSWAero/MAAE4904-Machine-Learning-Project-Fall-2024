@@ -28,13 +28,14 @@ class MLPCLF: # Change to name of model as needed e.g. SupportVectorMachineCLF
         self.X_train, self.y_train = train_dataset
         self.model_path = os.path.join(model_dir,f'{model_name}.pkl')
         self.model_hyperparameters_path = os.path.join(model_dir,f'{model_name}_hyperparameters.json')
-        self.base_model = MLPClassifier(hidden_layer_sizes=(1024,512,256,128),
+        self.base_model = MLPClassifier(hidden_layer_sizes=(1536,768,512,256),
                                         activation='relu',
                                         solver='adam',
                                         random_state=42,
-                                        tol=0.0001,
+                                        tol=0.00005,
                                         early_stopping=True,
-                                        verbose=True)
+                                        verbose=True,
+                                        n_iter_no_change=15)
 
     def get_grid_search(self):
         '''
@@ -59,7 +60,7 @@ class MLPCLF: # Change to name of model as needed e.g. SupportVectorMachineCLF
             self.hyperparameters = self.grid_search.best_params_
             with open(os.path.join(self.model_path), "wb") as f:
                 dump(self.model, f, protocol=5)
-            with open(os.path.join(self.model_hyperparameters_path), "wb") as f:
+            with open(os.path.join(self.model_hyperparameters_path), "w") as f:
                 dump(self.hyperparameters, f)
         else:
             self.model = self.base_model
@@ -67,7 +68,7 @@ class MLPCLF: # Change to name of model as needed e.g. SupportVectorMachineCLF
             self.hyperparameters = self.model.get_params()
             with open(os.path.join(self.model_path), "wb") as f:
                 dump(self.model, f, protocol=5)
-            with open(os.path.join(self.model_hyperparameters_path), "wb") as f:
+            with open(os.path.join(self.model_hyperparameters_path), "w") as f:
                 dump(self.hyperparameters, f)
     
     def predict(self,X:np.array):

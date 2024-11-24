@@ -43,30 +43,35 @@ X_test, y_test = load_x_y(test_batch_path)
 labels = load_labels(label_names_batch_path)
 
 # Perform preprocessing steps
-X_train_grayscale_path = os.path.join(project_dir,'merged_X_train_grayscale_batches.csv')
-if os.path.isfile(X_train_grayscale_path): # Check if training batches have already been converted and merged into a csv file
-    X_train_grayscale = read_csv(X_train_grayscale_path,index_col=0,header=0).to_numpy()
+grayscale = False
+if grayscale:
+    X_train_grayscale_path = os.path.join(project_dir,'merged_X_train_grayscale_batches.csv')
+    if os.path.isfile(X_train_grayscale_path): # Check if training batches have already been converted and merged into a csv file
+        X_train_grayscale = read_csv(X_train_grayscale_path,index_col=0,header=0).to_numpy()
+    else:
+        X_train_grayscale = convert_dataset_to_grayscale(X_train)
+        DataFrame(X_train_grayscale).to_csv(X_train_grayscale_path)
+    X_test_grayscale = convert_dataset_to_grayscale(X_test)
+    X_train_norm = normalize(X_train_grayscale)
+    X_test_norm = normalize(X_test_grayscale)
 else:
-    X_train_grayscale = convert_dataset_to_grayscale(X_train)
-    DataFrame(X_train_grayscale).to_csv(X_train_grayscale_path)
-X_test_grayscale = convert_dataset_to_grayscale(X_test)
-X_train_norm = normalize(X_train_grayscale)
-X_test_norm = normalize(X_test_grayscale)
+    X_train_norm = normalize(X_train)
+    X_test_norm = normalize(X_test)
 
 # Perform principal-component analysis
-# pca_dir = os.path.join(project_dir,'PCA')
-# pca = get_PCA(X_train=X_train_norm,n_components=2304,pca_dir=pca_dir) # 75% of pixels
-# X_train_norm_transformed = apply_PCA(pca_n=pca,X=X_train_norm)
-# X_test_norm_transformed = apply_PCA(pca_n=pca,X=X_test_norm)
+pca_dir = os.path.join(project_dir,'PCA')
+pca = get_PCA(X_train=X_train_norm,n_components=1536,pca_dir=pca_dir)
+X_train_norm_transformed = apply_PCA(pca_n=pca,X=X_train_norm)
+X_test_norm_transformed = apply_PCA(pca_n=pca,X=X_test_norm)
 
 # Create and train models
-model_name = "MLP_CLF_grayscale_unoptimized"
+model_name = "MLP_CLF_PCA_1536_unoptimized_1"
 model_dir = os.path.join(project_dir,model_name)
 if not os.path.isdir(model_dir):
     os.mkdir(model_dir)
-clf = MLPCLF((X_train_norm,y_train),model_dir,model_name)
+clf = MLPCLF((X_train_norm_transformed,y_train),model_dir,model_name)
 clf.fit(optimize=False)
 
 # Generate predictions and evaluate model
-y_test_pred = clf.predict(X_test_norm)
+y_test_pred = clf.predict(X_test_norm_transformed)
 get_metrics(y_true=y_test,y_pred=y_test_pred,labels=labels,train=False,model_dir=model_dir)

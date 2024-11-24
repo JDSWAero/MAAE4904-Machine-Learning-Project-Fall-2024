@@ -26,7 +26,8 @@ class KNNCLF: # Change to name of model as needed e.g. SupportVectorMachineCLF
         train_dataset is a tuple expected in the format of (X_train, y_train)
         '''
         self.X_train, self.y_train = train_dataset
-        self.model_filepath = os.path.join(model_dir,f'{model_name}.pkl')
+        self.model_path = os.path.join(model_dir,f'{model_name}.pkl')
+        self.model_hyperparameters_path = os.path.join(model_dir,f'{model_name}_hyperparameters.json')
         self.base_model = KNeighborsClassifier(n_neighbors=25,leaf_size=50)
         
     def get_grid_search(self):
@@ -51,14 +52,19 @@ class KNNCLF: # Change to name of model as needed e.g. SupportVectorMachineCLF
             self.get_grid_search()
             self.grid_search.fit(self.X_train,self.y_train)
             self.model = self.grid_search.best_estimator_
-            self.best_parameters = self.grid_search.best_params_
-            with open(os.path.join(self.model_filepath), "wb") as f:
+            self.hyperparameters = self.grid_search.best_params_
+            with open(os.path.join(self.model_path), "wb") as f:
                 dump(self.model, f, protocol=5)
+            with open(os.path.join(self.model_hyperparameters_path), "w") as f:
+                dump(self.hyperparameters, f)
         else:
             self.model = self.base_model
             self.model.fit(self.X_train,self.y_train)
-            with open(os.path.join(self.model_filepath), "wb") as f:
+            self.hyperparameters = self.model.get_params()
+            with open(os.path.join(self.model_path), "wb") as f:
                 dump(self.model, f, protocol=5)
+            with open(os.path.join(self.model_hyperparameters_path), "w") as f:
+                dump(self.hyperparameters, f)
     
     def predict(self,X:np.array):
         '''
