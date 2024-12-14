@@ -9,7 +9,7 @@ from LR_clf import Log_Reg_CLF
 from evaluate import get_metrics
 
 # Create variable for path to folder containing datasets, model files, and results
-project_dir = r"C:\Users\bradl\OneDrive\Desktop\MAAE4904\MAAE4904-Machine-Learning-Project-Fall-2024"
+project_dir = r"C:\Users\jackw\Documents\MAAE4904\Project"
 
 # Load datasets and labels
 # Set path to folder where you have downloaded batch files
@@ -17,7 +17,7 @@ batch_dir = os.path.join(project_dir,r"cifar-10-python\cifar-10-batches-py")
 X_train_path = os.path.join(project_dir,'merged_X_train_batches.csv')
 y_train_path = os.path.join(project_dir,'merged_y_train_batches.csv')
 
-with open(os.path.join(project_dir,'supervised_augmented.pkl'), 'rb') as f:
+with open(os.path.join(project_dir,'train_augmented.pkl'), 'rb') as f:
     data = pickle.load(f)
 
 if 'x_train_augmented' in data and 'y_train_augmented' in data:

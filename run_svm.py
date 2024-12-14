@@ -61,7 +61,7 @@ X_train_norm_transformed = apply_PCA(pca_n=pca,X=X_train_norm)
 X_test_norm_transformed = apply_PCA(pca_n=pca,X=X_test_norm)
 
 # Augmented dataset
-augmented_filepath = os.path.join(project_dir,'supervised_augmented.pkl')
+augmented_filepath = os.path.join(project_dir,'train_augmented.pkl')
 
 with open(augmented_filepath,'rb') as f:
     data = pickle.load(f)

@@ -41,7 +41,7 @@ else:
     DataFrame(X_train_raw).to_csv(os.path.join(project_dir,'merged_X_train_batches.csv'))
     DataFrame(y_train).to_csv(os.path.join(project_dir,'merged_y_train_batches.csv'))
 
-augmented_dataset_path = os.path.join(project_dir,'augmented_dataset','supervised_augmented.pkl')
+augmented_dataset_path = os.path.join(project_dir,'train_augmented.pkl')
 with open(augmented_dataset_path, 'rb') as f:
     augmented_dataset = pickle.load(f)
 
