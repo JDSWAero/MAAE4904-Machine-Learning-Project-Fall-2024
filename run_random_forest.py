@@ -4,16 +4,18 @@ This is the main file that calls on t'''
 import os
 import numpy as np
 from pandas import DataFrame, read_csv
+import pickle
 
 from preprocess import load_x_y, load_labels, normalize, get_PCA, apply_PCA, convert_dataset_to_grayscale
-from knearest_neighbours_clf import KNNCLF, EnsembleKNNCLF
-from multilayer_perceptron_clf import MLPCLF, EnsembleMLPCLF
+from random_clf import RandomForestCLF
 from evaluate import get_metrics
 
-project_dir = r"C:\Users\jackw\Documents\MAAE4904\Project" # Create folder for datasets, model files, results
+# Create variable for path to folder containing datasets, model files, and results
+project_dir = "/home/anusha/Desktop/MAAE4904-Machine-Learning-Project-Fall-2024" # Create folder for datasets, model files, results
 
 # Load datasets and labels
-batch_dir = os.path.join(project_dir,r"cifar-10-python\cifar-10-batches-py") # Change path to where you have downloaded batch files
+# Set path to where you have downloaded batch files
+batch_dir = os.path.join(project_dir,"cifar-10-python/cifar-10-batches-py")
 X_train_path = os.path.join(project_dir,'merged_X_train_batches.csv')
 y_train_path = os.path.join(project_dir,'merged_y_train_batches.csv')
 
@@ -64,13 +66,32 @@ pca = get_PCA(X_train=X_train_norm,n_components=1536,pca_dir=pca_dir)
 X_train_norm_transformed = apply_PCA(pca_n=pca,X=X_train_norm)
 X_test_norm_transformed = apply_PCA(pca_n=pca,X=X_test_norm)
 
+# Augmented dataset
+augmented_filepath = os.path.join(project_dir,'supervised_augmented.pkl')
+
+with open(augmented_filepath,'rb') as f:
+    data = pickle.load(f)
+
+X_train_augmented , y_train_augmented = data['x_train_augmented'], data['y_train_augmented']
+
+X_train_aug_sep = X_train_augmented[50000:]
+y_train_aug_sep = y_train_augmented[50000:]
+
+X_train_augmented_normalize = X_train_augmented.reshape(55000, -1) / 255
+X_train_augmented_flat = X_train_augmented.reshape(X_train_augmented.shape[0], -1)
+
+X_train_aug_reduced = apply_PCA(pca_n=pca,X=X_train_augmented_flat)
+
+X_combined = np.concatenate([X_train_aug_reduced,X_train_norm_transformed],axis=0)
+y_combined = np.concatenate([y_train_augmented,y_train],axis=0)
+
 # Create and train models
-model_name = "MLP_CLF_PCA_1536_unoptimized_1"
+model_name = "RandomForestCLF"
 model_dir = os.path.join(project_dir,model_name)
 if not os.path.isdir(model_dir):
     os.mkdir(model_dir)
-clf = MLPCLF((X_train_norm_transformed,y_train),model_dir,model_name)
-clf.fit(optimize=False)
+clf = RandomForestCLF((X_combined,y_combined),model_dir,model_name)
+clf.fit()
 
 # Generate predictions and evaluate model
 y_test_pred = clf.predict(X_test_norm_transformed)

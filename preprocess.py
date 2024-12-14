@@ -4,6 +4,7 @@ Contains functions for preprocessing data through data transformation e.g. PCA, 
 
 import os
 import pickle
+from tqdm import tqdm
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,7 +12,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.decomposition import PCA
 
-def load_x_y(filepath:str):
+def load_x_y(filepath:str) -> tuple[np.ndarray,np.ndarray]:
     '''
     Opens and returns a data batch file from the CIFAR-10 dataset as an X, y tuple. The key:value pairs are described below for
     the dictionary that is returned when loading the batch with pickle.
@@ -30,7 +31,7 @@ def load_x_y(filepath:str):
 
     return X, y
 
-def load_labels(filepath:str='batches.meta'):
+def load_labels(filepath:str='batches.meta') -> list:
     '''
     Opens and returns label names for CIFAR-10 dataset as a list.
     '''
@@ -75,14 +76,66 @@ def convert_dataset_to_grayscale(X:np.ndarray):
     
     return X_converted
 
+def separate_and_reshape_channels(X_i:np.ndarray):
+    '''
+    Separate and reshape an instance of 32*32*3 pixel array into red, green, and blue channels.
+    '''
+    X_i_red = np.zeros(32*32)
+    X_i_green = np.zeros(32*32)
+    X_i_blue = np.zeros(32*32)
+
+    for j in range(0,32*32,32):
+        for i in range(32):
+            r = X_i[i+j]            # Store the red channel value
+            g = X_i[i+j+1023]       # Store the green channel value
+            b = X_i[i+j+1023*2]     # Store the blue channel value
+            X_i_red[i+j] = r
+            X_i_green[i+j] = g
+            X_i_blue[i+j] = b
+
+    return np.moveaxis(X_i.reshape((3,32,32)),0,-1)
+
+def get_feature_map(X_i:np.ndarray,channel_filters:np.ndarray,bias:int):
+    red_filter = channel_filters[:,:,0]
+    green_filter = channel_filters[:,:,1]
+    blue_filter = channel_filters[:,:,2]
+    
+    feature_map = np.zeros((30,30))
+    for i in range(1,30):
+        for j in range(1,30):
+            red_channel_grid = X_i[i-1:i+2,j-1:j+2,0]
+            green_channel_grid = X_i[i-1:i+2,j-1:j+2,1]
+            blue_channel_grid = X_i[i-1:i+2,j-1:j+2,2]
+            red_product = red_channel_grid * red_filter
+            green_product = green_channel_grid * green_filter
+            blue_product = blue_channel_grid * blue_filter
+            
+            feature_map[i,j] = relu(np.sum([np.sum(red_product),np.sum(green_product),np.sum(blue_product),bias]))
+    
+    return feature_map.flatten()
+
+def get_feature_map_dataset(X:np.ndarray,channel_filters:np.ndarray,bias:int):
+    X_featuremap = np.zeros((X.shape[0],30*30))
+    for i in tqdm(range(X.shape[0])):
+        X_i = np.moveaxis(X[i,:].reshape((3,32,32)),0,-1)
+        X_featuremap[i,:] = get_feature_map(X_i,channel_filters,bias)
+
+    return X_featuremap
+
 def get_PCA(X_train:np.ndarray,n_components:int,pca_dir:str):
     '''
     Fits principal-component analysis algorithm to the training features X_train and keeps n_components principal-components.
     '''
-    pca_n = PCA(n_components=n_components)
-    pca_n.fit(X_train)
-    with open(os.path.join(pca_dir,f'pca_{n_components}.pkl'), "wb") as f:
-            pickle.dump(pca_n, f, protocol=5)
+    if n_components == 0:
+        pca_n = PCA()
+        pca_n.fit(X_train)
+        with open(os.path.join(pca_dir,f'pca_all.pkl'), "wb") as f:
+                pickle.dump(pca_n, f, protocol=5)
+    else:
+        pca_n = PCA(n_components=n_components)
+        pca_n.fit(X_train)
+        with open(os.path.join(pca_dir,f'pca_{n_components}.pkl'), "wb") as f:
+                pickle.dump(pca_n, f, protocol=5)
 
     return pca_n
 
@@ -93,3 +146,12 @@ def apply_PCA(pca_n:PCA,X:np.ndarray):
     X_transformed = pca_n.transform(X)
 
     return X_transformed
+
+def relu(x):
+    '''
+    Rectified linear unit function. Returns x if greater than zero, otherwise returns 0.
+    '''
+    if x > 0:
+        return x
+    else:
+        return 0
