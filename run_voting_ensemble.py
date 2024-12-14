@@ -45,7 +45,7 @@ augmented_dataset_path = os.path.join(project_dir,'train_augmented.pkl')
 with open(augmented_dataset_path, 'rb') as f:
     augmented_dataset = pickle.load(f)
 
-X_train_augmented = augmented_dataset['x_train_augmented'].reshape((55000,32*32*3))
+X_train_augmented = augmented_dataset['x_train_augmented'].reshape(55000, -1)
 y_train_augmented = augmented_dataset['y_train_augmented']
 
 if os.path.isfile(X_test_path) and os.path.isfile(y_test_path): # Check if test batch has already been converted into a csv file

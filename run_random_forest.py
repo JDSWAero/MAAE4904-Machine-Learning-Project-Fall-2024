@@ -11,7 +11,7 @@ from random_clf import RandomForestCLF
 from evaluate import get_metrics
 
 # Create variable for path to folder containing datasets, model files, and results
-project_dir = "/home/anusha/Desktop/MAAE4904-Machine-Learning-Project-Fall-2024" # Create folder for datasets, model files, results
+project_dir = r"C:\Users\jackw\Documents\MAAE4904\Project"
 
 # Load datasets and labels
 # Set path to where you have downloaded batch files

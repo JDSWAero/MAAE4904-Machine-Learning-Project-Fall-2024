@@ -9,7 +9,7 @@ from nonlinearsvm_clf import NonLinearSVMCLF, EnsembleNonLinearSVMCLF
 from evaluate import get_metrics
 
 # Create variable for path to folder containing datasets, model files, and results
-project_dir = r"C:\Users\Tristan\MAAE4904\MAAE4904-Machine-Learning-Project-Fall-2024"
+project_dir = r"C:\Users\jackw\Documents\MAAE4904\Project"
 
 # Load datasets and labels
 # Create variable for path to folder containing datasets, model files, and results
@@ -44,19 +44,24 @@ X_test, y_test = load_x_y(test_batch_path)
 labels = load_labels(label_names_batch_path)
 
 # Perform preprocessing steps
-X_train_grayscale_path = os.path.join(project_dir,'merged_X_train_grayscale_batches.csv')
-if os.path.isfile(X_train_grayscale_path): # Check if training batches have already been converted and merged into a csv file
-    X_train_grayscale = read_csv(X_train_grayscale_path,index_col=0,header=0).to_numpy()
+grayscale = False
+if grayscale:
+    X_train_grayscale_path = os.path.join(project_dir,'merged_X_train_grayscale_batches.csv')
+    if os.path.isfile(X_train_grayscale_path): # Check if training batches have already been converted and merged into a csv file
+        X_train_grayscale = read_csv(X_train_grayscale_path,index_col=0,header=0).to_numpy()
+    else:
+        X_train_grayscale = convert_dataset_to_grayscale(X_train)
+        DataFrame(X_train_grayscale).to_csv(X_train_grayscale_path)
+    X_test_grayscale = convert_dataset_to_grayscale(X_test)
+    X_train_norm = normalize(X_train_grayscale)
+    X_test_norm = normalize(X_test_grayscale)
 else:
-    X_train_grayscale = convert_dataset_to_grayscale(X_train)
-    DataFrame(X_train_grayscale).to_csv(X_train_grayscale_path)
-X_test_grayscale = convert_dataset_to_grayscale(X_test)
-X_train_norm = normalize(X_train_grayscale)
-X_test_norm = normalize(X_test_grayscale)
+    X_train_norm = normalize(X_train)
+    X_test_norm = normalize(X_test)
 
 # Perform principal-component analysis
 pca_dir = os.path.join(project_dir,'PCA')
-pca = get_PCA(X_train=X_train_norm,n_components=2304,pca_dir=pca_dir) # 75% of pixels
+pca = get_PCA(X_train=X_train_norm,n_components=1536,pca_dir=pca_dir) # 75% of pixels
 X_train_norm_transformed = apply_PCA(pca_n=pca,X=X_train_norm)
 X_test_norm_transformed = apply_PCA(pca_n=pca,X=X_test_norm)
 
@@ -80,11 +85,11 @@ X_combined = np.concatenate([X_train_aug_reduced,X_train_norm_transformed],axis=
 y_combined = np.concatenate([y_train_augmented,y_train],axis=0)
 
 # Create and train models
-model_name = "LinearSVMCLF"
+model_name = "NonLinearSVMCLF"
 model_dir = os.path.join(project_dir,model_name)
 if not os.path.isdir(model_dir):
     os.mkdir(model_dir)
-clf = LinearSVMCLF((X_combined,y_combined),model_dir,model_name)
+clf = NonLinearSVMCLF((X_combined,y_combined),model_dir,model_name)
 clf.fit()
 
 # Generate predictions and evaluate model

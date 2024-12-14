@@ -22,7 +22,7 @@ with open(os.path.join(project_dir,'train_augmented.pkl'), 'rb') as f:
 
 if 'x_train_augmented' in data and 'y_train_augmented' in data:
         # For supervised_augmented.pkl
-        x_data = data['x_train_augmented']
+        x_data = data['x_train_augmented'].reshape(55000, -1)
         y_labels = data['y_train_augmented']
 
 if os.path.isfile(X_train_path) and os.path.isfile(y_train_path): # Check if training batches have already been converted and merged into a csv file

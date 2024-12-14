@@ -45,8 +45,7 @@ class LinearSVMCLF: # Change to name of model as needed e.g. SupportVectorMachin
         Get exhaustive grid search cross validation object using parameter grid to find optimal hyperparameters.
         '''
         self.parameter_grid = {
-            'C': [0.01, 0.1, 1, 10, 100],
-            'kernel': ['linear']
+            'C': [0.01, 0.1, 1, 10, 100]
         }
         self.grid_search = HalvingGridSearchCV(estimator=self.base_model,
                                             param_grid=self.parameter_grid,
