@@ -38,10 +38,12 @@ x_unlabeled = np.delete(x_train_original_flat, selected_indices, axis=0)
 y_unlabeled_true = np.delete(y_train_original, selected_indices, axis=0)
 
 # Reduce dimensionality with PCA to 50 components
+print('Performing PCA')
 pca = PCA(n_components=50, random_state=42)
 x_unlabeled_reduced = pca.fit_transform(x_unlabeled)
 
 # Perform K-Means clustering on the original dataset
+print('Performing clustering')
 kmeans = KMeans(
     n_clusters=3000, 
     random_state=42, 
@@ -51,6 +53,7 @@ kmeans = KMeans(
 y_clustered = kmeans.fit_predict(x_unlabeled_reduced)
 
 # Map clusters to class labels
+print('Propagating class labels')
 cluster_label_mapping = {}
 for cluster in range(3000):
     cluster_indices = np.where(y_clustered == cluster)[0]
@@ -77,7 +80,7 @@ unsupervised_original_data = {
     "x_data": x_unlabeled,
     "y_labels": y_predicted
 }
-with open("unsupervised_original_data.pkl", "wb") as f:
+with open(os.path.join(project_dir,"unsupervised_original_data.pkl"), "wb") as f:
     pickle.dump(unsupervised_original_data, f)
 
 # Repeat the same process for the augmented dataset
@@ -117,5 +120,5 @@ unsupervised_augmented_data = {
     "x_data": x_train_augmented,
     "y_labels": y_predicted_augmented
 }
-with open("unsupervised_augmented_data.pkl", "wb") as f:
+with open(os.path.join(project_dir,"unsupervised_augmented_data.pkl"), "wb") as f:
     pickle.dump(unsupervised_augmented_data, f)
