@@ -17,7 +17,7 @@ batch_dir = os.path.join(project_dir,r"cifar-10-python\cifar-10-batches-py")
 X_train_path = os.path.join(project_dir,'merged_X_train_batches.csv')
 y_train_path = os.path.join(project_dir,'merged_y_train_batches.csv')
 
-with open('supervised_augmented.pkl', 'rb') as f:
+with open(os.path.join(project_dir,'supervised_augmented.pkl'), 'rb') as f:
     data = pickle.load(f)
 
 if 'x_train_augmented' in data and 'y_train_augmented' in data:
